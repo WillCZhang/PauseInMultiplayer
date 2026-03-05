@@ -703,10 +703,12 @@ namespace PauseInMultiplayer
                     }
 
                     //normal pause logic (terminates via false)
+                    // REVISED: if any player is in pause state, pause.
                     foreach (string pauseTime in pauseTimeAll.Values)
-                        if (pauseTime == "false") return false;
+                        if (pauseTime == "true") return true;
 
-                    return true;
+                    // Resume time when none of the triggering condition is true
+                    return false;
                 }
                 else
                 {
