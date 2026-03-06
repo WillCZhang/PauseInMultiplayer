@@ -598,34 +598,22 @@ namespace PauseInMultiplayer
             //handle health locks on a per player basis
             if (shouldPauseNow)
             {
-                //set temporary duration locks if it has just become paused and/or update Duration if new food is consumed during pause
-                if (Game1.buffsDisplay.food != null && Game1.buffsDisplay.food.millisecondsDuration > foodDuration)
-                    foodDuration = Game1.buffsDisplay.food.millisecondsDuration;
-                if (Game1.buffsDisplay.drink != null && Game1.buffsDisplay.drink.millisecondsDuration > drinkDuration)
-                    drinkDuration = Game1.buffsDisplay.drink.millisecondsDuration;
+                int elapsed = (int)Game1.currentGameTime.ElapsedGameTime.TotalMilliseconds;
 
-                if (Game1.buffsDisplay.food != null)
-                    Game1.buffsDisplay.food.millisecondsDuration = foodDuration;
-                if (Game1.buffsDisplay.drink != null)
-                    Game1.buffsDisplay.drink.millisecondsDuration = drinkDuration;
-
-                if (!lockMonsters) goto endHealthLogic;
-                //health lock
-                if (healthLock == -100)
-                    healthLock = Game1.player.health;
-                //catch edge cases where health has increased but asynchronously will not be applied before locking
-                if (Game1.player.health > healthLock)
-                    healthLock = Game1.player.health;
-
-                Game1.player.health = healthLock;
-
-                Game1.player.temporarilyInvincible = true;
-                Game1.player.temporaryInvincibilityTimer = -1000000000;
-
-
-            endHealthLogic:;
-
+                // 显式指定类型为 KeyValuePair<string, Buff> 以匹配编译器要求
+                foreach (KeyValuePair<string, Buff> pair in Game1.player.buffs.AppliedBuffs)
+                {
+                    // 从键值对中提取出真正的 Buff 对象
+                    Buff buff = pair.Value;
+                    
+                    // 1.6 版本中 Buff 对象本身不太可能为 null，但为了健壮性保留判断
+                    if (buff != null && buff.millisecondsDuration > 0)
+                    {
+                        buff.millisecondsDuration += elapsed;
+                    }
+                }
             }
+            // }
             else
             {
                 foodDuration = -100;
@@ -640,8 +628,6 @@ namespace PauseInMultiplayer
                     Game1.player.temporarilyInvincible = false;
                 }
             }
-
-
         }
 
         public void votePauseToggle()
